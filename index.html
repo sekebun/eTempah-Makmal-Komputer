@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem eTempah Makmal Komputer</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -31,8 +32,10 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .header-bg {
-             background: linear-gradient(to right, #6366f1, #818cf8);
+        .chart-container {
+            position: relative;
+            height: 350px;
+            width: 100%;
         }
     </style>
 </head>
@@ -93,42 +96,70 @@
                 </form>
             </div>
 
-            <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-lg">
-                <div class="flex justify-between items-center border-b pb-4 mb-2">
-                    <h2 class="text-2xl font-semibold">Senarai Tempahan Makmal</h2>
-                    <button id="refreshBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-4 rounded-md transition-colors text-sm">
-                        Refresh
-                    </button>
-                </div>
-                
-                <div class="flex justify-between items-center my-4 p-2 bg-slate-100 rounded-lg">
-                    <button id="prevWeekBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-md transition-colors">
-                        &lt; Lepas
-                    </button>
-                    <h3 id="weekRangeDisplay" class="text-lg font-semibold text-center text-slate-700"></h3>
-                    <button id="nextWeekBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-md transition-colors">
-                        Depan &gt;
-                    </button>
+            <div class="lg:col-span-2 space-y-8">
+                <div class="bg-white p-6 rounded-lg shadow-lg">
+                    <div class="flex justify-between items-center border-b pb-4 mb-2">
+                        <h2 class="text-2xl font-semibold">Senarai Tempahan Makmal</h2>
+                        <button id="refreshBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-4 rounded-md transition-colors text-sm">
+                            Refresh
+                        </button>
+                    </div>
+                    
+                    <div class="flex justify-between items-center my-4 p-2 bg-slate-100 rounded-lg">
+                        <button id="prevWeekBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-md transition-colors">
+                            &lt; Lepas
+                        </button>
+                        <h3 id="weekRangeDisplay" class="text-lg font-semibold text-center text-slate-700"></h3>
+                        <button id="nextWeekBtn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-md transition-colors">
+                            Depan &gt;
+                        </button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-slate-200">
+                            <thead class="bg-slate-100">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Tarikh</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Masa</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Guru</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Kelas</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Subjek</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bookingTableBody" class="bg-white divide-y divide-slate-200">
+                                 <tr>
+                                    <td colspan="5" class="px-6 py-10 text-center text-slate-500">Memuatkan data...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-slate-200">
-                        <thead class="bg-slate-100">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Tarikh</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Masa</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Guru</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Kelas</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Subjek</th>
-                            </tr>
-                        </thead>
-                        <tbody id="bookingTableBody" class="bg-white divide-y divide-slate-200">
-                             <tr>
-                                <td colspan="5" class="px-6 py-10 text-center text-slate-500">Memuatkan data...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div id="analyticsSection" class="bg-white p-6 rounded-lg shadow-lg">
+                    <h2 class="text-2xl font-semibold mb-6 border-b pb-4">Analisis Penggunaan Mingguan</h2>
+                    <div id="chartsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div>
+                            <h3 class="text-lg font-semibold text-center mb-2">Mengikut Guru</h3>
+                            <div class="chart-container">
+                                <canvas id="teacherChart"></canvas>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-center mb-2">Mengikut Subjek</h3>
+                             <div class="chart-container">
+                                <canvas id="subjectChart"></canvas>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-center mb-2">Mengikut Kelas</h3>
+                             <div class="chart-container">
+                                <canvas id="classChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                     <p id="noAnalyticsData" class="text-center text-slate-500 py-8 hidden">Tiada data untuk dipaparkan dalam graf.</p>
                 </div>
+
             </div>
         </div>
     </div>
@@ -146,14 +177,7 @@
 
             // --- Get elements ---
             const bookingForm = document.getElementById('bookingForm');
-            const formElements = [
-                document.getElementById('teacher'),
-                document.getElementById('class'),
-                document.getElementById('subject'),
-                document.getElementById('date'),
-                document.getElementById('timeSlot'),
-                document.getElementById('submitButton')
-            ];
+            const formElements = [ document.getElementById('teacher'), document.getElementById('class'), document.getElementById('subject'), document.getElementById('date'), document.getElementById('timeSlot'), document.getElementById('submitButton') ];
             const [teacherSelect, classSelect, subjectSelect, dateInput, timeSlotSelect, submitButton] = formElements;
             const bookingTableBody = document.getElementById('bookingTableBody');
             const messageBox = document.getElementById('messageBox');
@@ -162,13 +186,17 @@
             const weekRangeDisplay = document.getElementById('weekRangeDisplay');
             const submitButtonText = document.getElementById('submitButtonText');
             const refreshBtn = document.getElementById('refreshBtn');
+            const chartsContainer = document.getElementById('chartsContainer');
+            const noAnalyticsData = document.getElementById('noAnalyticsData');
+
 
             // --- State Management ---
             let allBookings = [];
             let currentDate = new Date();
+            let teacherChart, subjectChart, classChart;
 
             // --- Helper Functions ---
-             const toYYYYMMDD = (d) => d.toISOString().split('T')[0];
+            const toYYYYMMDD = (d) => d.toISOString().split('T')[0];
 
             const setLoadingState = (isLoading, element, textElement = null, originalText = '') => {
                 if (isLoading) {
@@ -199,7 +227,7 @@
             const formatDateDisplay = (date) => date.toLocaleString('ms-MY', { day: '2-digit', month: 'short' });
 
             const populateSelect = (selectElement, options) => {
-                options.forEach(option => {
+                options.sort().forEach(option => {
                     const opt = document.createElement('option');
                     opt.value = option;
                     opt.textContent = option;
@@ -221,7 +249,7 @@
                 messageBox.classList.add(bgColor, textColor);
                 if (type !== 'info') {
                      setTimeout(() => {
-                         if (messageBox.textContent === message) { // Only hide if message hasn't changed
+                         if (messageBox.textContent === message) {
                              messageBox.classList.add('hidden');
                          }
                      }, 5000);
@@ -229,9 +257,7 @@
             };
             
              const convertTo24Hour = (timeStr) => {
-                if (!timeStr || typeof timeStr !== 'string' || !timeStr.includes(' ')) {
-                    return '00:00'; 
-                }
+                if (!timeStr || typeof timeStr !== 'string' || !timeStr.includes(' ')) return '00:00'; 
                 const [time, modifier] = timeStr.split(' ');
                 let [hours, minutes] = time.split(':');
                 if (hours === '12') hours = '00';
@@ -239,31 +265,71 @@
                 if (modifier.toUpperCase() === 'PM' && time.split(':')[0] === '12') hours = 12;
                 return `${String(hours).padStart(2, '0')}:${minutes}`;
             };
+
+            const chartColors = [ '#3b82f6', '#10b981', '#ef4444', '#f97316', '#8b5cf6', '#eab308', '#ec4899', '#14b8a6', '#a855f7', '#22c55e', '#f43f5e', '#0ea5e9', '#d946ef', '#f59e0b', '#6b7280', '#4338ca' ];
+            const generateChartData = (bookings, property) => {
+                const counts = bookings.reduce((acc, booking) => {
+                    const key = booking[property];
+                    acc[key] = (acc[key] || 0) + 1;
+                    return acc;
+                }, {});
+                const sortedData = Object.entries(counts).sort(([,a],[,b]) => b-a);
+                return {
+                    labels: sortedData.map(item => item[0]),
+                    data: sortedData.map(item => item[1])
+                };
+            };
+
+            const createChart = (ctx, labels, data, chartType) => {
+                return new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: ' Bilangan Tempahan',
+                            data: data,
+                            backgroundColor: chartColors,
+                            borderColor: '#ffffff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    boxWidth: 12,
+                                    padding: 15
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+
+             const updateChart = (chart, newData) => {
+                chart.data.labels = newData.labels;
+                chart.data.datasets[0].data = newData.data;
+                chart.update();
+            };
+
             
             // --- Core Functions ---
             const manageBookingAccess = () => {
                 const today = new Date();
-                const dayOfWeek = today.getDay(); // 0=Ahad, 1=Isnin, ..., 5=Jumaat, 6=Sabtu
-
-                const isBookingWindowOpen = [0, 5, 6].includes(dayOfWeek); // Jumaat, Sabtu, Ahad
-
+                const dayOfWeek = today.getDay(); 
+                const isBookingWindowOpen = [0, 5, 6].includes(dayOfWeek); 
                 if (isBookingWindowOpen) {
                     formElements.forEach(el => el.disabled = false);
-
                     const daysUntilMonday = dayOfWeek === 5 ? 3 : (dayOfWeek === 6 ? 2 : 1);
-                    
                     const nextMonday = new Date(today);
                     nextMonday.setDate(today.getDate() + daysUntilMonday);
-                    
                     const nextFriday = new Date(nextMonday);
                     nextFriday.setDate(nextMonday.getDate() + 4);
-
-                    const minDate = toYYYYMMDD(nextMonday);
-                    const maxDate = toYYYYMMDD(nextFriday);
-
-                    dateInput.min = minDate;
-                    dateInput.max = maxDate;
-
+                    dateInput.min = toYYYYMMDD(nextMonday);
+                    dateInput.max = toYYYYMMDD(nextFriday);
                     showMessage(`Tempahan dibuka untuk minggu hadapan (${formatDateDisplay(nextMonday)} - ${formatDateDisplay(nextFriday)}).`, 'info');
                 } else {
                     formElements.forEach(el => el.disabled = true);
@@ -291,7 +357,6 @@
             const renderBookings = () => {
                 const week = getWeekRange(currentDate);
                 weekRangeDisplay.textContent = `${formatDateDisplay(week.start)} - ${formatDateDisplay(week.end)}`;
-
                 const weekBookings = allBookings.filter(booking => {
                     const bookingDate = new Date(booking.date);
                     return bookingDate >= week.start && bookingDate <= week.end;
@@ -300,54 +365,54 @@
                 bookingTableBody.innerHTML = '';
                 if (weekBookings.length === 0) {
                     bookingTableBody.innerHTML = '<tr><td colspan="5" class="px-6 py-10 text-center text-slate-500">Tiada tempahan untuk minggu ini.</td></tr>';
-                    return;
+                } else {
+                     weekBookings.sort((a, b) => {
+                        const dateA = new Date(a.date).getTime();
+                        const dateB = new Date(b.date).getTime();
+                        if (dateA !== dateB) return dateA - dateB;
+                        const timeA = convertTo24Hour(a.timeSlot);
+                        const timeB = convertTo24Hour(b.timeSlot);
+                        return timeA.localeCompare(timeB);
+                    });
+
+                    weekBookings.forEach(booking => {
+                        const row = document.createElement('tr');
+                        const bookingDateObj = new Date(booking.date);
+                        let displayTime = booking.timeSlot;
+                        if (typeof booking.timeSlot === 'string' && booking.timeSlot.includes('T')) {
+                            try {
+                                const timeAsDate = new Date(booking.timeSlot);
+                                displayTime = timeAsDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+                            } catch (e) { /* fallback */ }
+                        }
+                        row.innerHTML = `<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${bookingDateObj.toLocaleString('ms-MY', { weekday: 'long', day: '2-digit', month: '2-digit'})}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${displayTime}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${booking.teacher}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${booking.class}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${booking.subject}</td>`;
+                        bookingTableBody.appendChild(row);
+                    });
                 }
-
-                weekBookings.sort((a, b) => {
-                    const dateA = new Date(a.date).getTime();
-                    const dateB = new Date(b.date).getTime();
-                    if (dateA !== dateB) return dateA - dateB;
-                    const timeA = convertTo24Hour(a.timeSlot);
-                    const timeB = convertTo24Hour(b.timeSlot);
-                    return timeA.localeCompare(timeB);
-                });
-
-                weekBookings.forEach(booking => {
-                    const row = document.createElement('tr');
-                    const bookingDateObj = new Date(booking.date);
-                    
-                    let displayTime = booking.timeSlot;
-                    if (typeof booking.timeSlot === 'string' && booking.timeSlot.includes('T')) {
-                        try {
-                            const timeAsDate = new Date(booking.timeSlot);
-                            displayTime = timeAsDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-                        } catch (e) { /* fallback */ }
-                    }
-
-                    row.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${bookingDateObj.toLocaleString('ms-MY', { weekday: 'long', day: '2-digit', month: '2-digit'})}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${displayTime}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${booking.teacher}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${booking.class}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${booking.subject}</td>
-                    `;
-                    bookingTableBody.appendChild(row);
-                });
+               
+                // Update Analytics Charts
+                if (weekBookings.length > 0) {
+                    chartsContainer.classList.remove('hidden');
+                    noAnalyticsData.classList.add('hidden');
+                    updateChart(teacherChart, generateChartData(weekBookings, 'teacher'));
+                    updateChart(subjectChart, generateChartData(weekBookings, 'subject'));
+                    updateChart(classChart, generateChartData(weekBookings, 'class'));
+                } else {
+                    chartsContainer.classList.add('hidden');
+                    noAnalyticsData.classList.remove('hidden');
+                }
             };
 
             // --- Event Listeners ---
             refreshBtn.addEventListener('click', loadBookings);
-
             prevWeekBtn.addEventListener('click', () => {
                 currentDate.setDate(currentDate.getDate() - 7);
                 renderBookings();
             });
-
             nextWeekBtn.addEventListener('click', () => {
                 currentDate.setDate(currentDate.getDate() + 7);
                 renderBookings();
             });
-            
             dateInput.addEventListener('input', (e) => {
                 const selectedDate = new Date(e.target.value);
                 const day = selectedDate.getUTCDay();
@@ -359,19 +424,9 @@
 
             bookingForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                
-                const newBookingData = {
-                    id: Date.now(),
-                    teacher: teacherSelect.value,
-                    class: classSelect.value,
-                    subject: subjectSelect.value,
-                    date: dateInput.value,
-                    timeSlot: timeSlotSelect.value,
-                };
-                
+                const newBookingData = { id: Date.now(), teacher: teacherSelect.value, class: classSelect.value, subject: subjectSelect.value, date: dateInput.value, timeSlot: timeSlotSelect.value };
                 const isBooked = allBookings.some(booking => {
                     const existingDateStr = toYYYYMMDD(new Date(booking.date));
-                    
                     let existingTimeSlot = booking.timeSlot;
                     if (typeof booking.timeSlot === 'string' && booking.timeSlot.includes('T')) {
                         try {
@@ -386,29 +441,21 @@
                     showMessage('Slot masa ini telah ditempah. Sila pilih slot lain.', 'error');
                     return;
                 }
-                
                 setLoadingState(true, submitButton, submitButtonText, 'Tempah Slot');
-
                 try {
-                    const response = await fetch(SCRIPT_URL, {
-                        method: 'POST',
-                        body: JSON.stringify({ action: 'addBooking', booking: newBookingData }),
-                    });
+                    const response = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'addBooking', booking: newBookingData }) });
                     const result = await response.json();
-
                     if(result.success) {
                         showMessage('Tempahan berjaya!', 'success');
                         bookingForm.reset();
                         await loadBookings();
-                    } else {
-                        throw new Error(result.message);
-                    }
+                    } else { throw new Error(result.message); }
                 } catch(error) {
                      console.error("Error adding booking:", error);
                      showMessage('Gagal untuk membuat tempahan.', 'error');
                 } finally {
                     setLoadingState(false, submitButton, submitButtonText, 'Tempah Slot');
-                    manageBookingAccess(); // Re-apply date limits after submission
+                    manageBookingAccess();
                 }
             });
 
@@ -417,8 +464,14 @@
             populateSelect(classSelect, classes);
             populateSelect(subjectSelect, subjects);
             populateSelect(timeSlotSelect, timeSlots);
-            manageBookingAccess(); // Apply booking window rules on page load
-            loadBookings(); // Load initial data from Google Sheet
+
+            // Initialize Charts
+            teacherChart = createChart(document.getElementById('teacherChart').getContext('2d'), [], []);
+            subjectChart = createChart(document.getElementById('subjectChart').getContext('2d'), [], []);
+            classChart = createChart(document.getElementById('classChart').getContext('2d'), [], []);
+            
+            manageBookingAccess(); 
+            loadBookings(); 
         });
     </script>
 </body>
