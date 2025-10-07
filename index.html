@@ -5,22 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem eTempah Makmal Komputer</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f4f8; /* Light blue-gray pastel */
+            background-color: #f0f4f8;
         }
-        /* Custom styles for disabled elements */
         button:disabled, input:disabled, select:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             background-color: #e2e8f0;
         }
         .loader {
-            border: 4px solid #f3f3f3; /* Light grey */
-            border-top: 4px solid #4f46e5; /* Indigo */
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4f46e5;
             border-radius: 50%;
             width: 24px;
             height: 24px;
@@ -32,10 +30,10 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        .chart-container {
-            position: relative;
-            height: 350px;
-            width: 100%;
+        .timetable-cell {
+            min-width: 80px;
+            height: 40px;
+            transition: background-color: 0.3s;
         }
     </style>
 </head>
@@ -99,7 +97,7 @@
             <div class="lg:col-span-2 space-y-8">
                 <div class="bg-white p-6 rounded-lg shadow-lg">
                     <div class="flex justify-between items-center border-b pb-4 mb-2">
-                        <h2 class="text-2xl font-semibold">Senarai Tempahan Makmal</h2>
+                        <h2 class="text-2xl font-semibold">Data Tempahan Mingguan</h2>
                         <button id="refreshBtn" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2 px-4 rounded-md transition-colors text-sm">
                             Refresh
                         </button>
@@ -114,52 +112,56 @@
                             Depan &gt;
                         </button>
                     </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-slate-200">
-                            <thead class="bg-slate-100">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Tarikh</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Masa</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Guru</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Kelas</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Subjek</th>
-                                </tr>
-                            </thead>
-                            <tbody id="bookingTableBody" class="bg-white divide-y divide-slate-200">
-                                 <tr>
-                                    <td colspan="5" class="px-6 py-10 text-center text-slate-500">Memuatkan data...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div id="analyticsSection" class="bg-white p-6 rounded-lg shadow-lg">
-                    <h2 class="text-2xl font-semibold mb-6 border-b pb-4">Analisis Penggunaan Mingguan</h2>
-                    <div id="chartsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <div>
-                            <h3 class="text-lg font-semibold text-center mb-2">Mengikut Guru</h3>
-                            <div class="chart-container">
-                                <canvas id="teacherChart"></canvas>
-                            </div>
+                    
+                    <!-- Timetable View -->
+                    <div id="timetable-view" class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xl font-semibold">Jadual Penggunaan Makmal</h3>
+                        </div>
+                        <div class="overflow-x-auto border border-slate-200 rounded-lg">
+                            <table class="min-w-full text-center">
+                                <thead class="bg-slate-100">
+                                    <tr>
+                                        <th class="p-2 text-xs font-medium text-slate-500 uppercase">Masa</th>
+                                        <th class="p-2 text-xs font-medium text-slate-500 uppercase">Isnin</th>
+                                        <th class="p-2 text-xs font-medium text-slate-500 uppercase">Selasa</th>
+                                        <th class="p-2 text-xs font-medium text-slate-500 uppercase">Rabu</th>
+                                        <th class="p-2 text-xs font-medium text-slate-500 uppercase">Khamis</th>
+                                        <th class="p-2 text-xs font-medium text-slate-500 uppercase">Jumaat</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="timetableBody" class="divide-y divide-slate-200">
+                                    <!-- Timetable rows will be generated by JS -->
+                                </tbody>
+                            </table>
                         </div>
                         <div>
-                            <h3 class="text-lg font-semibold text-center mb-2">Mengikut Subjek</h3>
-                             <div class="chart-container">
-                                <canvas id="subjectChart"></canvas>
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-center mb-2">Mengikut Kelas</h3>
-                             <div class="chart-container">
-                                <canvas id="classChart"></canvas>
+                            <h4 class="text-md font-semibold mb-2">Petunjuk Warna Guru</h4>
+                            <div id="colorLegend" class="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+                                <!-- Legend items will be generated by JS -->
                             </div>
                         </div>
                     </div>
-                     <p id="noAnalyticsData" class="text-center text-slate-500 py-8 hidden">Tiada data untuk dipaparkan dalam graf.</p>
-                </div>
 
+                    <!-- List View -->
+                    <div id="list-view" class="mt-8">
+                        <h3 class="text-xl font-semibold mb-4">Senarai Tempahan Makmal</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-slate-200">
+                                <thead class="bg-slate-100">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Tarikh</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Masa</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Guru</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Kelas</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Subjek</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="bookingTableBody" class="bg-white divide-y divide-slate-200"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -174,26 +176,25 @@
             const classes = ["1 Al Ikhlas", "1 Al Falaq", "1 An Nas", "2 Al Ikhlas", "2 Al Falaq", "3 Al Ikhlas", "3 Al Falaq", "3 An Nas", "4 Al Ikhlas", "4 Al Falaq", "5 Al Ikhlas", "5 Al Falaq", "5 An Nas", "6 Al Ikhlas", "6 Al Falaq"];
             const subjects = ["BM", "BI", "MT", "SN", "PJ", "PK", "RBT", "SJ", "MZ", "PS", "PI", "ULM", "JW", "TS", "BA"];
             const timeSlots = ["07:40 AM", "08:10 AM", "08:40 AM", "09:10 AM", "09:40 AM", "10:10 AM", "10:30 AM", "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM", "01:00 PM"];
+            const daysOfWeek = ['ahad', 'isnin', 'selasa', 'rabu', 'khamis', 'jumaat', 'sabtu'];
 
             // --- Get elements ---
             const bookingForm = document.getElementById('bookingForm');
             const formElements = [ document.getElementById('teacher'), document.getElementById('class'), document.getElementById('subject'), document.getElementById('date'), document.getElementById('timeSlot'), document.getElementById('submitButton') ];
             const [teacherSelect, classSelect, subjectSelect, dateInput, timeSlotSelect, submitButton] = formElements;
             const bookingTableBody = document.getElementById('bookingTableBody');
+            const timetableBody = document.getElementById('timetableBody');
+            const colorLegend = document.getElementById('colorLegend');
             const messageBox = document.getElementById('messageBox');
             const prevWeekBtn = document.getElementById('prevWeekBtn');
             const nextWeekBtn = document.getElementById('nextWeekBtn');
             const weekRangeDisplay = document.getElementById('weekRangeDisplay');
             const submitButtonText = document.getElementById('submitButtonText');
             const refreshBtn = document.getElementById('refreshBtn');
-            const chartsContainer = document.getElementById('chartsContainer');
-            const noAnalyticsData = document.getElementById('noAnalyticsData');
-
 
             // --- State Management ---
             let allBookings = [];
             let currentDate = new Date();
-            let teacherChart, subjectChart, classChart;
 
             // --- Helper Functions ---
             const toYYYYMMDD = (d) => d.toISOString().split('T')[0];
@@ -226,8 +227,9 @@
 
             const formatDateDisplay = (date) => date.toLocaleString('ms-MY', { day: '2-digit', month: 'short' });
 
-            const populateSelect = (selectElement, options) => {
-                options.sort().forEach(option => {
+            const populateSelect = (selectElement, options, shouldSort = true) => {
+                const optionsToRender = shouldSort ? [...options].sort() : options;
+                optionsToRender.forEach(option => {
                     const opt = document.createElement('option');
                     opt.value = option;
                     opt.textContent = option;
@@ -265,57 +267,45 @@
                 if (modifier.toUpperCase() === 'PM' && time.split(':')[0] === '12') hours = 12;
                 return `${String(hours).padStart(2, '0')}:${minutes}`;
             };
-
-            const chartColors = [ '#3b82f6', '#10b981', '#ef4444', '#f97316', '#8b5cf6', '#eab308', '#ec4899', '#14b8a6', '#a855f7', '#22c55e', '#f43f5e', '#0ea5e9', '#d946ef', '#f59e0b', '#6b7280', '#4338ca' ];
-            const generateChartData = (bookings, property) => {
-                const counts = bookings.reduce((acc, booking) => {
-                    const key = booking[property];
-                    acc[key] = (acc[key] || 0) + 1;
-                    return acc;
-                }, {});
-                const sortedData = Object.entries(counts).sort(([,a],[,b]) => b-a);
-                return {
-                    labels: sortedData.map(item => item[0]),
-                    data: sortedData.map(item => item[1])
-                };
-            };
-
-            const createChart = (ctx, labels, data, chartType) => {
-                return new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: ' Bilangan Tempahan',
-                            data: data,
-                            backgroundColor: chartColors,
-                            borderColor: '#ffffff',
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    boxWidth: 12,
-                                    padding: 15
-                                }
-                            }
-                        }
-                    }
-                });
-            };
-
-             const updateChart = (chart, newData) => {
-                chart.data.labels = newData.labels;
-                chart.data.datasets[0].data = newData.data;
-                chart.update();
-            };
-
             
+            const colorPalette = [
+                '#FF0000', '#0000FF', '#00FF00', '#FFFF00', '#FF00FF', '#00FFFF', '#FF4500', '#EE82EE', 
+                '#FF69B4', '#7CFC00', '#000080', '#228B22', '#800000', '#4B0082', '#36454F', '#5D4037', 
+                '#191970', '#556B2F', '#8B0000', '#87CEEB', '#FFB6C1', '#98FF98', '#E6E6FA', '#FFE5B4', 
+                '#FFFFE0', '#B0E0E6', '#FFFACD', '#C8A2C8', '#BCB88A', '#808080', '#F4A460', '#C3B091', 
+                '#A52A2A', '#696969', '#F5F5DC', '#D2B48C', '#C0C0C0', '#708090', '#E0115F', '#0F52BA', 
+                '#50C878', '#9966CC', '#40E0D0', '#FFD700', '#00A86B', '#9A2A2A', '#FFC87C', '#E4D00A'
+            ];
+            const getColorForItem = (item) => {
+                let hash = 0;
+                if (!item || item.length === 0) return colorPalette[0];
+                for (let i = 0; i < item.length; i++) {
+                    hash = item.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                const index = Math.abs(hash % colorPalette.length);
+                return colorPalette[index];
+            };
+
+            const normalizeTimeSlot = (timeValue) => {
+                if (typeof timeValue === 'string' && timeSlots.includes(timeValue)) {
+                    return timeValue;
+                }
+                if (typeof timeValue === 'string' && timeValue.includes('T')) {
+                    try {
+                        const dateObj = new Date(timeValue);
+                        return dateObj.toLocaleTimeString('en-US', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            hour12: true,
+                            timeZone: 'Asia/Kuala_Lumpur'
+                        });
+                    } catch (e) {
+                        return timeValue; 
+                    }
+                }
+                return timeValue;
+            };
+
             // --- Core Functions ---
             const manageBookingAccess = () => {
                 const today = new Date();
@@ -338,22 +328,68 @@
             };
 
             const loadBookings = async () => {
-                bookingTableBody.innerHTML = '<tr><td colspan="5" class="px-6 py-10 text-center text-slate-500">Memuatkan data...</td></tr>';
+                const loadingMessage = '<tr><td colspan="5" class="px-6 py-10 text-center text-slate-500">Memuatkan data...</td></tr>';
+                bookingTableBody.innerHTML = loadingMessage;
+                renderTimetableView([]);
                 try {
                     const response = await fetch(SCRIPT_URL);
                     const result = await response.json();
                     if (result.success) {
                         allBookings = result.data;
                         renderBookings();
-                    } else {
-                        throw new Error(result.message);
-                    }
+                    } else { throw new Error(result.message); }
                 } catch (error) {
                     console.error("Error loading bookings:", error);
                     bookingTableBody.innerHTML = '<tr><td colspan="5" class="px-6 py-10 text-center text-red-500">Gagal memuatkan data. Sila periksa sambungan internet anda.</td></tr>';
                 }
             };
             
+            const renderTimetableView = (weekBookings) => {
+                const colorBy = 'teacher';
+                const legendItems = new Set();
+
+                document.querySelectorAll('.timetable-cell').forEach(cell => {
+                    cell.style.backgroundColor = '';
+                    cell.title = 'Slot kosong';
+                });
+                
+                weekBookings.forEach(booking => {
+                    const bookingDate = new Date(booking.date);
+                    const dayName = daysOfWeek[bookingDate.getUTCDay()];
+                    
+                    const normalizedTime = normalizeTimeSlot(booking.timeSlot);
+                    if (normalizedTime) {
+                        const timeSlotId = normalizedTime.replace(/[:\s]/g, '');
+                        if (dayName && timeSlotId) {
+                            const cellId = `${dayName}-${timeSlotId}`;
+                            const cell = document.getElementById(cellId);
+                            if (cell) {
+                                const itemToColor = booking[colorBy];
+                                const color = getColorForItem(itemToColor);
+                                cell.style.backgroundColor = color;
+                                cell.title = `Guru: ${booking.teacher}\nKelas: ${booking.class}\nSubjek: ${booking.subject}\nMasa: ${normalizedTime}`;
+                                legendItems.add(itemToColor);
+                            }
+                        }
+                    }
+                });
+
+                colorLegend.innerHTML = '';
+                if (legendItems.size === 0) {
+                     if (weekBookings.length > 0) {
+                        colorLegend.innerHTML = '<p class="text-slate-500">Tiada data tempahan untuk dipaparkan dalam jadual.</p>';
+                    }
+                } else {
+                    Array.from(legendItems).sort().forEach(item => {
+                        const color = getColorForItem(item);
+                        const legendItem = document.createElement('div');
+                        legendItem.className = 'flex items-center';
+                        legendItem.innerHTML = `<span class="w-4 h-4 rounded-full mr-2" style="background-color: ${color};"></span><span>${item}</span>`;
+                        colorLegend.appendChild(legendItem);
+                    });
+                }
+            };
+
             const renderBookings = () => {
                 const week = getWeekRange(currentDate);
                 weekRangeDisplay.textContent = `${formatDateDisplay(week.start)} - ${formatDateDisplay(week.end)}`;
@@ -370,49 +406,38 @@
                         const dateA = new Date(a.date).getTime();
                         const dateB = new Date(b.date).getTime();
                         if (dateA !== dateB) return dateA - dateB;
-                        const timeA = convertTo24Hour(a.timeSlot);
-                        const timeB = convertTo24Hour(b.timeSlot);
+                        const timeA = convertTo24Hour(normalizeTimeSlot(a.timeSlot));
+                        const timeB = convertTo24Hour(normalizeTimeSlot(b.timeSlot));
                         return timeA.localeCompare(timeB);
                     });
 
                     weekBookings.forEach(booking => {
                         const row = document.createElement('tr');
                         const bookingDateObj = new Date(booking.date);
-                        let displayTime = booking.timeSlot;
-                        if (typeof booking.timeSlot === 'string' && booking.timeSlot.includes('T')) {
-                            try {
-                                const timeAsDate = new Date(booking.timeSlot);
-                                displayTime = timeAsDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-                            } catch (e) { /* fallback */ }
-                        }
+                        
+                        const displayTime = normalizeTimeSlot(booking.timeSlot);
+
                         row.innerHTML = `<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">${bookingDateObj.toLocaleString('ms-MY', { weekday: 'long', day: '2-digit', month: '2-digit'})}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${displayTime}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${booking.teacher}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${booking.class}</td> <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-500">${booking.subject}</td>`;
                         bookingTableBody.appendChild(row);
                     });
                 }
-               
-                // Update Analytics Charts
-                if (weekBookings.length > 0) {
-                    chartsContainer.classList.remove('hidden');
-                    noAnalyticsData.classList.add('hidden');
-                    updateChart(teacherChart, generateChartData(weekBookings, 'teacher'));
-                    updateChart(subjectChart, generateChartData(weekBookings, 'subject'));
-                    updateChart(classChart, generateChartData(weekBookings, 'class'));
-                } else {
-                    chartsContainer.classList.add('hidden');
-                    noAnalyticsData.classList.remove('hidden');
-                }
+                
+                renderTimetableView(weekBookings);
             };
 
             // --- Event Listeners ---
             refreshBtn.addEventListener('click', loadBookings);
+            
             prevWeekBtn.addEventListener('click', () => {
                 currentDate.setDate(currentDate.getDate() - 7);
                 renderBookings();
             });
+
             nextWeekBtn.addEventListener('click', () => {
                 currentDate.setDate(currentDate.getDate() + 7);
                 renderBookings();
             });
+
             dateInput.addEventListener('input', (e) => {
                 const selectedDate = new Date(e.target.value);
                 const day = selectedDate.getUTCDay();
@@ -427,13 +452,7 @@
                 const newBookingData = { id: Date.now(), teacher: teacherSelect.value, class: classSelect.value, subject: subjectSelect.value, date: dateInput.value, timeSlot: timeSlotSelect.value };
                 const isBooked = allBookings.some(booking => {
                     const existingDateStr = toYYYYMMDD(new Date(booking.date));
-                    let existingTimeSlot = booking.timeSlot;
-                    if (typeof booking.timeSlot === 'string' && booking.timeSlot.includes('T')) {
-                        try {
-                            const timeAsDate = new Date(booking.timeSlot);
-                            existingTimeSlot = timeAsDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-                        } catch(e) { /* ignore */ }
-                    }
+                    const existingTimeSlot = normalizeTimeSlot(booking.timeSlot);
                     return existingDateStr === newBookingData.date && existingTimeSlot === newBookingData.timeSlot;
                 });
 
@@ -460,15 +479,26 @@
             });
 
             // --- Initial Setup ---
+            const initializeTimetableStructure = () => {
+                timeSlots.forEach(time => {
+                    const row = document.createElement('tr');
+                    const timeCell = `<td class="p-2 text-sm font-semibold bg-slate-50">${time}</td>`;
+                    let dayCells = '';
+                    daysOfWeek.slice(1, 6).forEach(day => { // Isnin to Jumaat
+                        const timeSlotId = time.replace(/[:\s]/g, '');
+                        dayCells += `<td id="${day}-${timeSlotId}" class="timetable-cell border border-slate-200" title="Slot kosong"></td>`;
+                    });
+                    row.innerHTML = timeCell + dayCells;
+                    timetableBody.appendChild(row);
+                });
+            };
+
             populateSelect(teacherSelect, teachers);
             populateSelect(classSelect, classes);
             populateSelect(subjectSelect, subjects);
-            populateSelect(timeSlotSelect, timeSlots);
-
-            // Initialize Charts
-            teacherChart = createChart(document.getElementById('teacherChart').getContext('2d'), [], []);
-            subjectChart = createChart(document.getElementById('subjectChart').getContext('2d'), [], []);
-            classChart = createChart(document.getElementById('classChart').getContext('2d'), [], []);
+            populateSelect(timeSlotSelect, timeSlots, false);
+            
+            initializeTimetableStructure();
             
             manageBookingAccess(); 
             loadBookings(); 
