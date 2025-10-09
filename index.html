@@ -269,12 +269,12 @@
             };
             
             const colorPalette = [
-                '#FF0000', '#0000FF', '#00FF00', '#FFFF00', '#FF00FF', '#00FFFF', '#FF4500', '#EE82EE', 
-                '#FF69B4', '#7CFC00', '#000080', '#228B22', '#800000', '#4B0082', '#36454F', '#5D4037', 
-                '#191970', '#556B2F', '#8B0000', '#87CEEB', '#FFB6C1', '#98FF98', '#E6E6FA', '#FFE5B4', 
-                '#FFFFE0', '#B0E0E6', '#FFFACD', '#C8A2C8', '#BCB88A', '#808080', '#F4A460', '#C3B091', 
-                '#A52A2A', '#696969', '#F5F5DC', '#D2B48C', '#C0C0C0', '#708090', '#E0115F', '#0F52BA', 
-                '#50C878', '#9966CC', '#40E0D0', '#FFD700', '#00A86B', '#9A2A2A', '#FFC87C', '#E4D00A'
+                "#e6194B", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#42d4f4", "#f032e6",
+                "#bfef45", "#fabed4", "#469990", "#dcbeff", "#9A6324", "#fffac8", "#800000", "#aaffc3",
+                "#808000", "#ffd8b1", "#000075", "#a9a9a9", "#f44336", "#2196F3", "#4CAF50", "#FFC107",
+                "#673AB7", "#795548", "#FF5722", "#607D8B", "#E91E63", "#009688", "#CDDC39", "#9C27B0",
+                "#03A9F4", "#8BC34A", "#FF9800", "#3F51B5", "#00BCD4", "#FFEB3B", "#9E9E9E", "#C2185B",
+                "#0277BD", "#558B2F", "#F57F17", "#1A237E", "#006064", "#E65100", "#880E4F", "#311B92"
             ];
             const getColorForItem = (item) => {
                 let hash = 0;
@@ -309,22 +309,34 @@
             // --- Core Functions ---
             const manageBookingAccess = () => {
                 const today = new Date();
-                const dayOfWeek = today.getDay(); 
-                const isBookingWindowOpen = [0, 5, 6].includes(dayOfWeek); 
-                if (isBookingWindowOpen) {
-                    formElements.forEach(el => el.disabled = false);
-                    const daysUntilMonday = dayOfWeek === 5 ? 3 : (dayOfWeek === 6 ? 2 : 1);
-                    const nextMonday = new Date(today);
-                    nextMonday.setDate(today.getDate() + daysUntilMonday);
-                    const nextFriday = new Date(nextMonday);
-                    nextFriday.setDate(nextMonday.getDate() + 4);
-                    dateInput.min = toYYYYMMDD(nextMonday);
-                    dateInput.max = toYYYYMMDD(nextFriday);
-                    showMessage(`Tempahan dibuka untuk minggu hadapan (${formatDateDisplay(nextMonday)} - ${formatDateDisplay(nextFriday)}).`, 'info');
-                } else {
-                    formElements.forEach(el => el.disabled = true);
-                    showMessage('Tempahan untuk minggu hadapan hanya dibuka pada setiap hari Jumaat hingga Ahad.', 'info');
-                }
+                const dayOfWeek = today.getDay(); // 0=Ahad, 1=Isnin, ..., 6=Sabtu
+
+                // Kitaran tempahan baharu bermula pada setiap hari Sabtu.
+                // Tetingkap tempahan dibuka dari Sabtu (Minggu N) hingga Jumaat (Minggu N+1).
+                // Minggu yang ditempah dalam kitaran ini ialah minggu yang bermula pada Isnin (Minggu N+1).
+                
+                // Langkah 1: Cari hari Sabtu yang memulakan kitaran tempahan semasa.
+                const currentCycleStartDate = new Date(today);
+                const daysSinceSaturday = (dayOfWeek - 6 + 7) % 7;
+                currentCycleStartDate.setDate(today.getDate() - daysSinceSaturday);
+
+                // Langkah 2: Tentukan minggu yang boleh ditempah. 
+                // Ia adalah minggu yang bermula pada hari Isnin, 2 hari selepas tarikh mula kitaran (Sabtu).
+                const targetMonday = new Date(currentCycleStartDate);
+                targetMonday.setDate(currentCycleStartDate.getDate() + 2);
+                
+                const targetFriday = new Date(targetMonday);
+                targetFriday.setDate(targetMonday.getDate() + 4);
+
+                // Langkah 3: Elemen borang sentiasa diaktifkan kerana tetingkap tempahan sentiasa terbuka untuk satu minggu atau minggu yang lain.
+                formElements.forEach(el => el.disabled = false);
+
+                // Langkah 4: Tetapkan julat tarikh yang sah untuk medan input tarikh.
+                dateInput.min = toYYYYMMDD(targetMonday);
+                dateInput.max = toYYYYMMDD(targetFriday);
+                
+                // Langkah 5: Paparkan mesej bermaklumat tentang tetingkap tempahan semasa.
+                showMessage(`Tempahan dibuka untuk minggu ${formatDateDisplay(targetMonday)} - ${formatDateDisplay(targetFriday)}. Tempahan ditutup pada hari Jumaat jam 11:59 PM.`, 'info');
             };
 
             const loadBookings = async () => {
@@ -506,4 +518,8 @@
     </script>
 </body>
 </html>
+
+
+
+
 
